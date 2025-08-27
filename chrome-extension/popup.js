@@ -84,6 +84,44 @@ class MyntraTryOnExtension {
             console.error('Save API key button not found!');
         }
         
+        // Settings buttons
+        const changeApiKeyBtn = document.getElementById('changeApiKeyBtn');
+        if (changeApiKeyBtn) {
+            changeApiKeyBtn.addEventListener('click', () => this.showApiKeyModal());
+        }
+        
+        const clearDataBtn = document.getElementById('clearDataBtn');
+        if (clearDataBtn) {
+            clearDataBtn.addEventListener('click', () => this.clearSavedData());
+        }
+        
+        const debugStorageBtn = document.getElementById('debugStorageBtn');
+        if (debugStorageBtn) {
+            debugStorageBtn.addEventListener('click', () => this.debugStorage());
+        }
+        
+        // Modal buttons
+        const updateApiKeyBtn = document.getElementById('updateApiKeyBtn');
+        if (updateApiKeyBtn) {
+            updateApiKeyBtn.addEventListener('click', () => this.updateApiKey());
+        }
+        
+        const cancelApiKeyBtn = document.getElementById('cancelApiKeyBtn');
+        if (cancelApiKeyBtn) {
+            cancelApiKeyBtn.addEventListener('click', () => this.hideApiKeyModal());
+        }
+        
+        // Saved results buttons
+        const showSavedResultBtn = document.getElementById('showSavedResultBtn');
+        if (showSavedResultBtn) {
+            showSavedResultBtn.addEventListener('click', () => this.showSavedResult());
+        }
+        
+        const generateNewBtn = document.getElementById('generateNewBtn');
+        if (generateNewBtn) {
+            generateNewBtn.addEventListener('click', () => this.generateNewTryOn());
+        }
+        
         // Image upload
         const uploadArea = document.getElementById('uploadArea');
         if (uploadArea) {
@@ -137,13 +175,23 @@ class MyntraTryOnExtension {
             
             if (this.currentUrl && this.currentUrl.includes('myntra.com')) {
                 console.log('Myntra URL detected');
-                document.getElementById('urlSection').style.display = 'block';
                 
                 // Check if we have a saved try-on result for this product
-                await this.checkSavedTryOnResult();
+                const hasSavedResult = await this.checkSavedTryOnResult();
+                
+                if (hasSavedResult) {
+                    // Saved result found, show saved results section
+                    document.getElementById('urlSection').style.display = 'none';
+                    document.getElementById('savedResultsSection').style.display = 'block';
+                } else {
+                    // No saved result, show regular URL section
+                    document.getElementById('urlSection').style.display = 'block';
+                    document.getElementById('savedResultsSection').style.display = 'none';
+                }
             } else {
                 console.log('Not a Myntra URL');
                 document.getElementById('urlSection').style.display = 'none';
+                document.getElementById('savedResultsSection').style.display = 'none';
             }
         } catch (error) {
             console.error('Error checking current tab:', error);
@@ -169,83 +217,136 @@ class MyntraTryOnExtension {
             const syncResult = await chrome.storage.sync.get([productKey]);
             if (syncResult[productKey]) {
                 console.log('Found saved try-on result in sync storage');
-                this.showSavedTryOnResult(syncResult[productKey]);
-                return;
+                this.savedTryOnData = syncResult[productKey];
+                return true;
             }
             
             // Check local storage
             const localResult = await chrome.storage.local.get([productKey]);
             if (localResult[productKey]) {
                 console.log('Found saved try-on result in local storage');
-                this.showSavedTryOnResult(localResult[productKey]);
-                return;
+                this.savedTryOnData = localResult[productKey];
+                return true;
             }
             
             console.log('No saved try-on result found for this product');
+            this.savedTryOnData = null;
+            return false;
         } catch (error) {
             console.error('Error checking saved try-on result:', error);
+            this.savedTryOnData = null;
+            return false;
         }
     }
 
     showSavedTryOnResult(savedData) {
-        // Show a notification that we have a saved result
-        this.showStatus('Found saved try-on result! Click "Show Saved Result" to view.');
+        console.log('Showing saved try-on result');
         
-        // Add a button to show the saved result
-        const savedResultButton = document.createElement('button');
-        savedResultButton.textContent = 'Show Saved Result';
-        savedResultButton.className = 'saved-result-btn';
-        savedResultButton.style.cssText = `
-            background: #ff3f6c;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin: 10px 0;
-            font-size: 14px;
-        `;
+        // Store the saved data for later use
+        this.savedTryOnData = savedData;
         
-        savedResultButton.onclick = () => {
-            this.generatedImageDataUrl = savedData.imageDataUrl;
-            this.showResult(savedData.imageDataUrl);
-            this.injectImageToPage(savedData.imageDataUrl);
-        };
+        // Hide the regular URL section and show the saved results section
+        document.getElementById('urlSection').style.display = 'none';
+        document.getElementById('savedResultsSection').style.display = 'block';
         
-        // Add the button to the main section
-        const mainSection = document.getElementById('mainSection');
-        const existingButton = mainSection.querySelector('.saved-result-btn');
-        if (existingButton) {
-            existingButton.remove();
-        }
-        mainSection.appendChild(savedResultButton);
+        this.showStatus('Found saved try-on result for this product!');
+    }
+
+    async compressImage(imageDataUrl, maxSizeKB = 100) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Calculate new dimensions to maintain aspect ratio
+                let { width, height } = img;
+                const maxDimension = 800; // Max width/height
+                
+                if (width > height) {
+                    if (width > maxDimension) {
+                        height = (height * maxDimension) / width;
+                        width = maxDimension;
+                    }
+                } else {
+                    if (height > maxDimension) {
+                        width = (width * maxDimension) / height;
+                        height = maxDimension;
+                    }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                // Draw and compress
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Start with high quality and reduce if needed
+                let quality = 0.8;
+                let compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                
+                // If still too large, reduce quality further
+                while (compressedDataUrl.length > maxSizeKB * 1024 && quality > 0.1) {
+                    quality -= 0.1;
+                    compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                }
+                
+                console.log(`Image compressed: ${imageDataUrl.length} -> ${compressedDataUrl.length} bytes (quality: ${quality.toFixed(1)})`);
+                resolve(compressedDataUrl);
+            };
+            img.src = imageDataUrl;
+        });
     }
 
     async saveTryOnResult(imageDataUrl) {
         try {
+            console.log('=== SAVE TRY-ON RESULT DEBUG ===');
+            console.log('Current URL:', this.currentUrl);
+            console.log('Original image data URL length:', imageDataUrl ? imageDataUrl.length : 'undefined');
+            
             const productKey = this.generateProductKey(this.currentUrl);
+            console.log('Generated product key:', productKey);
+            
+            // Compress the image to fit within storage limits
+            console.log('Compressing image for storage...');
+            const compressedImageDataUrl = await this.compressImage(imageDataUrl, 50); // 50KB limit
+            
+            console.log('Compressed image data URL length:', compressedImageDataUrl.length);
+            
             const savedData = {
-                imageDataUrl: imageDataUrl,
+                imageDataUrl: compressedImageDataUrl,
                 timestamp: Date.now(),
                 url: this.currentUrl
             };
             
             console.log('Saving try-on result with key:', productKey);
+            console.log('Saved data structure:', {
+                hasImageDataUrl: !!savedData.imageDataUrl,
+                imageDataUrlLength: savedData.imageDataUrl ? savedData.imageDataUrl.length : 0,
+                timestamp: savedData.timestamp,
+                url: savedData.url
+            });
             
-            // Try to save to sync storage first
+            // Try to save to sync storage first (compressed image should fit)
             try {
+                console.log('Attempting to save to sync storage...');
                 await chrome.storage.sync.set({ [productKey]: savedData });
-                console.log('Try-on result saved to sync storage');
+                console.log('✅ Try-on result saved to sync storage successfully');
                 this.showStatus('Try-on result saved for future visits!');
             } catch (syncError) {
-                console.log('Sync storage failed, saving to local storage:', syncError);
+                console.log('❌ Sync storage failed, saving to local storage:', syncError);
                 // Fallback to local storage
-                await chrome.storage.local.set({ [productKey]: savedData });
-                console.log('Try-on result saved to local storage');
-                this.showStatus('Try-on result saved locally for future visits!');
+                try {
+                    await chrome.storage.local.set({ [productKey]: savedData });
+                    console.log('✅ Try-on result saved to local storage successfully');
+                    this.showStatus('Try-on result saved locally for future visits!');
+                } catch (localError) {
+                    console.error('❌ Both sync and local storage failed:', localError);
+                    this.showStatus('Could not save try-on result');
+                }
             }
         } catch (error) {
-            console.error('Error saving try-on result:', error);
+            console.error('❌ Error saving try-on result:', error);
             this.showStatus('Could not save try-on result');
         }
     }
@@ -365,7 +466,15 @@ class MyntraTryOnExtension {
             return;
         }
 
-        await this.performTryOn(this.currentUrl);
+        // Set button to loading state
+        this.setTryOnButtonLoading(true);
+
+        try {
+            await this.performTryOn(this.currentUrl);
+        } finally {
+            // Reset button state regardless of success or failure
+            this.setTryOnButtonLoading(false);
+        }
     }
 
     async performTryOn(url) {
@@ -708,6 +817,10 @@ class MyntraTryOnExtension {
     }
 
     showResult(imageDataUrl) {
+        console.log('=== SHOW RESULT DEBUG ===');
+        console.log('Image data URL received:', imageDataUrl ? 'Yes' : 'No');
+        console.log('Image data URL length:', imageDataUrl ? imageDataUrl.length : 'undefined');
+        
         this.hideAllSections();
         document.getElementById('resultImage').src = imageDataUrl;
         document.getElementById('resultsSection').style.display = 'block';
@@ -717,6 +830,7 @@ class MyntraTryOnExtension {
         this.injectImageToPage(imageDataUrl);
         
         // Save the generated result for future use
+        console.log('About to call saveTryOnResult...');
         this.saveTryOnResult(imageDataUrl);
     }
 
@@ -752,6 +866,123 @@ class MyntraTryOnExtension {
         setTimeout(() => {
             statusElement.textContent = '';
         }, 3000);
+    }
+
+    setTryOnButtonLoading(isLoading) {
+        const tryOnButton = document.getElementById('tryOnButton');
+        if (!tryOnButton) return;
+
+        if (isLoading) {
+            // Set loading state
+            tryOnButton.disabled = true;
+            tryOnButton.innerHTML = '<div class="button-spinner"></div> Generating...';
+            tryOnButton.classList.add('loading');
+        } else {
+            // Reset to normal state
+            tryOnButton.disabled = false;
+            tryOnButton.innerHTML = 'Try This Dress';
+            tryOnButton.classList.remove('loading');
+        }
+    }
+
+    showSavedResult() {
+        if (!this.savedTryOnData) {
+            this.showError('No saved result found');
+            return;
+        }
+        
+        console.log('Showing saved try-on result');
+        this.generatedImageDataUrl = this.savedTryOnData.imageDataUrl;
+        this.showResult(this.savedTryOnData.imageDataUrl);
+        this.injectImageToPage(this.savedTryOnData.imageDataUrl);
+    }
+
+    generateNewTryOn() {
+        console.log('Generating new try-on instead of using saved result');
+        
+        // Hide saved results section and show regular URL section
+        document.getElementById('savedResultsSection').style.display = 'none';
+        document.getElementById('urlSection').style.display = 'block';
+        
+        // Generate new try-on
+        this.generateTryOn();
+    }
+
+    // Debug method to check what's in storage
+    async debugStorage() {
+        try {
+            console.log('=== DEBUG STORAGE ===');
+            const syncData = await chrome.storage.sync.get(null);
+            const localData = await chrome.storage.local.get(null);
+            
+            console.log('Sync storage:', syncData);
+            console.log('Local storage:', localData);
+            
+            if (this.currentUrl) {
+                const productKey = this.generateProductKey(this.currentUrl);
+                console.log('Current product key:', productKey);
+                
+                // Check if we have saved data for this product
+                const savedData = syncData[productKey] || localData[productKey];
+                console.log('Saved data for this product:', savedData);
+                console.log('Instance saved data:', this.savedTryOnData);
+                
+                if (savedData) {
+                    console.log('Saved data details:', {
+                        hasImageDataUrl: !!savedData.imageDataUrl,
+                        imageDataUrlLength: savedData.imageDataUrl ? savedData.imageDataUrl.length : 0,
+                        timestamp: savedData.timestamp,
+                        url: savedData.url
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Debug storage error:', error);
+        }
+    }
+
+    showApiKeyModal() {
+        console.log('Showing API key change modal');
+        document.getElementById('apiKeyModal').style.display = 'flex';
+        document.getElementById('newApiKeyInput').focus();
+    }
+
+    hideApiKeyModal() {
+        console.log('Hiding API key change modal');
+        document.getElementById('apiKeyModal').style.display = 'none';
+        document.getElementById('newApiKeyInput').value = '';
+    }
+
+    async updateApiKey() {
+        console.log('updateApiKey method called');
+        const newApiKeyInput = document.getElementById('newApiKeyInput');
+        if (!newApiKeyInput) {
+            console.error('New API key input not found!');
+            this.showError('New API key input element not found');
+            return;
+        }
+        
+        const newApiKey = newApiKeyInput.value.trim();
+        console.log('New API key length:', newApiKey.length);
+        
+        if (!newApiKey) {
+            console.log('No new API key provided');
+            this.showError('Please enter a valid API key');
+            return;
+        }
+
+        try {
+            console.log('Attempting to update API key in storage...');
+            await chrome.storage.sync.set({ geminiApiKey: newApiKey });
+            console.log('API key updated successfully');
+            
+            this.apiKey = newApiKey;
+            this.hideApiKeyModal();
+            this.showStatus('API key updated successfully!');
+        } catch (error) {
+            console.error('Failed to update API key:', error);
+            this.showError('Failed to update API key: ' + error.message);
+        }
     }
 
     async clearSavedData() {

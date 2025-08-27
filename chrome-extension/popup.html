@@ -24,6 +24,27 @@
 
         <!-- Main Functionality Section -->
         <div class="section" id="mainSection" style="display: none;">
+            <!-- Settings Section -->
+            <div class="settings-section">
+                <h3>Settings</h3>
+                <button id="changeApiKeyBtn" class="secondary-button">Change API Key</button>
+                <button id="clearDataBtn" class="secondary-button danger">Clear All Data</button>
+                <button id="debugStorageBtn" class="secondary-button">Debug Storage</button>
+            </div>
+
+            <!-- API Key Change Modal -->
+            <div class="modal" id="apiKeyModal" style="display: none;">
+                <div class="modal-content">
+                    <h3>Change API Key</h3>
+                    <p>Enter your new Gemini API key:</p>
+                    <input type="password" id="newApiKeyInput" placeholder="Enter new Gemini API Key">
+                    <div class="modal-actions">
+                        <button id="updateApiKeyBtn" class="primary-button">Update API Key</button>
+                        <button id="cancelApiKeyBtn" class="secondary-button">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Image Upload -->
             <div class="upload-section">
                 <h3>Upload Your Photo</h3>
@@ -47,7 +68,15 @@
                 <button id="tryOnButton" class="primary-button">Try This Dress</button>
             </div>
 
-
+            <!-- Saved Results Section -->
+            <div class="saved-results-section" id="savedResultsSection" style="display: none;">
+                <h3>📋 Saved Try-On Result</h3>
+                <p>You have a saved try-on result for this product!</p>
+                <div class="saved-result-actions">
+                    <button id="showSavedResultBtn" class="primary-button">Show Saved Result</button>
+                    <button id="generateNewBtn" class="secondary-button">Generate New</button>
+                </div>
+            </div>
 
             <!-- Loading State -->
             <div class="loading-section" id="loadingSection" style="display: none;">

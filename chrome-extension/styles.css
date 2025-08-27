@@ -272,3 +272,41 @@ body {
     font-size: 12px;
     cursor: pointer;
 }
+
+/* Settings Section */
+.settings-section {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.settings-section h3 {
+    margin-bottom: 12px;
+    color: #2c3e50;
+}
+
+.secondary-button {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.3s;
+    margin-right: 8px;
+    margin-bottom: 8px;
+}
+
+.secondary-button:hover {
+    background: #5a6268;
+}
+
+.secondary-button.danger {
+    background: #dc3545;
+}
+
+.secondary-button.danger:hover {
+    background: #c82333;
+}
