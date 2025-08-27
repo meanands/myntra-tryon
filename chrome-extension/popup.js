@@ -84,7 +84,13 @@ class MyntraTryOnExtension {
             console.error('Save API key button not found!');
         }
         
-        // Settings buttons
+        // Settings menu button
+        const settingsMenuBtn = document.getElementById('settingsMenuBtn');
+        if (settingsMenuBtn) {
+            settingsMenuBtn.addEventListener('click', () => this.toggleSettingsMenu());
+        }
+        
+        // Settings menu items
         const changeApiKeyBtn = document.getElementById('changeApiKeyBtn');
         if (changeApiKeyBtn) {
             changeApiKeyBtn.addEventListener('click', () => this.showApiKeyModal());
@@ -110,6 +116,18 @@ class MyntraTryOnExtension {
         if (cancelApiKeyBtn) {
             cancelApiKeyBtn.addEventListener('click', () => this.hideApiKeyModal());
         }
+        
+        // Close settings menu when clicking outside
+        document.addEventListener('click', (e) => {
+            const settingsDropdown = document.getElementById('settingsDropdown');
+            const settingsMenuBtn = document.getElementById('settingsMenuBtn');
+            
+            if (settingsDropdown && settingsDropdown.style.display === 'block') {
+                if (!settingsDropdown.contains(e.target) && !settingsMenuBtn.contains(e.target)) {
+                    this.hideSettingsMenu();
+                }
+            }
+        });
         
         // Saved results buttons
         const showSavedResultBtn = document.getElementById('showSavedResultBtn');
@@ -941,8 +959,28 @@ class MyntraTryOnExtension {
         }
     }
 
+    toggleSettingsMenu() {
+        const settingsDropdown = document.getElementById('settingsDropdown');
+        if (settingsDropdown.style.display === 'block') {
+            this.hideSettingsMenu();
+        } else {
+            this.showSettingsMenu();
+        }
+    }
+
+    showSettingsMenu() {
+        console.log('Showing settings menu');
+        document.getElementById('settingsDropdown').style.display = 'block';
+    }
+
+    hideSettingsMenu() {
+        console.log('Hiding settings menu');
+        document.getElementById('settingsDropdown').style.display = 'none';
+    }
+
     showApiKeyModal() {
         console.log('Showing API key change modal');
+        this.hideSettingsMenu(); // Hide settings menu when opening modal
         document.getElementById('apiKeyModal').style.display = 'flex';
         document.getElementById('newApiKeyInput').focus();
     }

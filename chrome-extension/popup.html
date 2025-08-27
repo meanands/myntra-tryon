@@ -8,100 +8,196 @@
 </head>
 <body>
     <div class="container">
+        <!-- Header with Settings Menu -->
         <div class="header">
-            <h1>Virtual Try-On</h1>
+            <div class="header-content">
+                <h1>Virtual Try-On</h1>
+                <button id="settingsMenuBtn" class="settings-menu-btn" title="Settings">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                </button>
+            </div>
             <div class="status" id="status"></div>
+        </div>
+
+        <!-- Settings Dropdown Menu -->
+        <div class="settings-dropdown" id="settingsDropdown" style="display: none;">
+            <div class="settings-menu">
+                <div class="settings-item" id="changeApiKeyBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path>
+                    </svg>
+                    <span>Change API Key</span>
+                </div>
+                <div class="settings-item" id="debugStorageBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                    </svg>
+                    <span>Debug Storage</span>
+                </div>
+                <div class="settings-divider"></div>
+                <div class="settings-item danger" id="clearDataBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 6h18"></path>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                        <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    <span>Clear All Data</span>
+                </div>
+            </div>
         </div>
 
         <!-- API Key Setup Section -->
         <div class="section" id="apiKeySection">
-            <h3>Setup</h3>
-            <p>Enter your Gemini API key to get started:</p>
-            <input type="password" id="apiKeyInput" placeholder="Enter Gemini API Key">
-            <button id="saveApiKey">Save API Key</button>
-            <p class="note">Your API key is stored locally and never shared.</p>
+            <div class="setup-card">
+                <div class="setup-icon">🔑</div>
+                <h3>Welcome to Virtual Try-On</h3>
+                <p>Enter your Gemini API key to get started with AI-powered virtual fitting</p>
+                <div class="input-group">
+                    <input type="password" id="apiKeyInput" placeholder="Enter Gemini API Key">
+                    <button id="saveApiKey" class="primary-button">Get Started</button>
+                </div>
+                <p class="note">Your API key is stored locally and never shared</p>
+            </div>
         </div>
 
         <!-- Main Functionality Section -->
         <div class="section" id="mainSection" style="display: none;">
-            <!-- Settings Section -->
-            <div class="settings-section">
-                <h3>Settings</h3>
-                <button id="changeApiKeyBtn" class="secondary-button">Change API Key</button>
-                <button id="clearDataBtn" class="secondary-button danger">Clear All Data</button>
-                <button id="debugStorageBtn" class="secondary-button">Debug Storage</button>
-            </div>
-
             <!-- API Key Change Modal -->
             <div class="modal" id="apiKeyModal" style="display: none;">
                 <div class="modal-content">
-                    <h3>Change API Key</h3>
+                    <div class="modal-header">
+                        <h3>Change API Key</h3>
+                        <button id="cancelApiKeyBtn" class="modal-close">×</button>
+                    </div>
                     <p>Enter your new Gemini API key:</p>
                     <input type="password" id="newApiKeyInput" placeholder="Enter new Gemini API Key">
                     <div class="modal-actions">
                         <button id="updateApiKeyBtn" class="primary-button">Update API Key</button>
-                        <button id="cancelApiKeyBtn" class="secondary-button">Cancel</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Image Upload -->
+            <!-- Photo Upload Section -->
             <div class="upload-section">
-                <h3>Upload Your Photo</h3>
+                <div class="section-header">
+                    <h3>📸 Your Photo</h3>
+                    <span class="section-subtitle">Upload a clear photo of yourself</span>
+                </div>
+                
                 <div class="upload-area" id="uploadArea">
                     <input type="file" id="imageInput" accept="image/*" style="display: none;">
                     <div class="upload-placeholder">
-                        <span>📷</span>
-                        <p>Click to upload your photo</p>
+                        <div class="upload-icon">📷</div>
+                        <div class="upload-text">
+                            <strong>Click to upload your photo</strong>
+                            <span>or drag and drop</span>
+                        </div>
                     </div>
                 </div>
+                
                 <div class="preview-container" id="previewContainer" style="display: none;">
-                    <img id="previewImage" alt="Preview">
-                    <button id="removeImage">Remove</button>
+                    <div class="preview-card">
+                        <img id="previewImage" alt="Preview">
+                        <button id="removeImage" class="remove-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 6L6 18M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <!-- Myntra URL Detection -->
             <div class="url-section" id="urlSection" style="display: none;">
-                <h3>Myntra Product Detected</h3>
-                <p>We found a Myntra product on this page!</p>
-                <button id="tryOnButton" class="primary-button">Try This Dress</button>
+                <div class="detection-card">
+                    <div class="detection-icon">✅</div>
+                    <h3>Myntra Product Detected</h3>
+                    <p>We found a Myntra product on this page!</p>
+                    <button id="tryOnButton" class="primary-button">
+                        <span>Try This Dress</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             <!-- Saved Results Section -->
             <div class="saved-results-section" id="savedResultsSection" style="display: none;">
-                <h3>📋 Saved Try-On Result</h3>
-                <p>You have a saved try-on result for this product!</p>
-                <div class="saved-result-actions">
-                    <button id="showSavedResultBtn" class="primary-button">Show Saved Result</button>
-                    <button id="generateNewBtn" class="secondary-button">Generate New</button>
+                <div class="saved-card">
+                    <div class="saved-icon">📋</div>
+                    <h3>Saved Try-On Result</h3>
+                    <p>You have a saved try-on result for this product!</p>
+                    <div class="saved-actions">
+                        <button id="showSavedResultBtn" class="primary-button">
+                            <span>Show Saved Result</span>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>
+                        <button id="generateNewBtn" class="secondary-button">
+                            <span>Generate New</span>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 2v6h-6"></path>
+                                <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
+                                <path d="M3 22v-6h6"></path>
+                                <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <!-- Loading State -->
             <div class="loading-section" id="loadingSection" style="display: none;">
-                <div class="spinner"></div>
-                <p>Generating your virtual try-on...</p>
-                <p class="note">This may take 30-60 seconds</p>
+                <div class="loading-card">
+                    <div class="spinner"></div>
+                    <h3>Generating your virtual try-on...</h3>
+                    <p>This may take 30-60 seconds</p>
+                </div>
             </div>
 
             <!-- Results -->
             <div class="results-section" id="resultsSection" style="display: none;">
-                <h3>Your Virtual Try-On</h3>
-                <div class="result-image-container">
-                    <img id="resultImage" alt="Generated Try-On">
-                </div>
-                <div class="result-actions">
-                    <button id="downloadButton">Download Image</button>
-                    <button id="tryAgainButton">Try Another</button>
+                <div class="result-card">
+                    <h3>✨ Your Virtual Try-On</h3>
+                    <div class="result-image-container">
+                        <img id="resultImage" alt="Generated Try-On">
+                    </div>
+                    <div class="result-actions">
+                        <button id="downloadButton" class="primary-button">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7,10 12,15 17,10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            <span>Download Image</span>
+                        </button>
+                        <button id="tryAgainButton" class="secondary-button">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 2v6h-6"></path>
+                                <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
+                                <path d="M3 22v-6h6"></path>
+                                <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
+                            </svg>
+                            <span>Try Another</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Error Section -->
         <div class="error-section" id="errorSection" style="display: none;">
-            <div class="error-message" id="errorMessage"></div>
-            <button id="dismissError">Dismiss</button>
+            <div class="error-card">
+                <div class="error-icon">⚠️</div>
+                <div class="error-message" id="errorMessage"></div>
+                <button id="dismissError" class="error-dismiss">Dismiss</button>
+            </div>
         </div>
     </div>
 
@@ -109,4 +205,3 @@
 </body>
 </html>
 ```
-
