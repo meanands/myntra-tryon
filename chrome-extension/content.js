@@ -2,6 +2,153 @@
 class MyntraImageExtractor {
     constructor() {
         this.setupMessageListener();
+        this.checkForSavedTryOn();
+    }
+
+    async checkForSavedTryOn() {
+        try {
+            console.log('Content script: Checking for saved try-on results...');
+            
+            // Wait for page to be fully loaded
+            if (document.readyState !== 'complete') {
+                await new Promise(resolve => {
+                    window.addEventListener('load', resolve, { once: true });
+                });
+            }
+            
+            // Wait a bit more for Myntra's dynamic content to load
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Check if this is a Myntra product page
+            if (!window.location.href.includes('myntra.com')) {
+                console.log('Content script: Not a Myntra page, skipping saved try-on check');
+                return;
+            }
+            
+            // Generate product key
+            const productKey = this.generateProductKey(window.location.href);
+            console.log('Content script: Checking for saved try-on with key:', productKey);
+            
+            // Check storage for saved try-on result
+            const savedData = await this.getSavedTryOnData(productKey);
+            
+            if (savedData && savedData.imageDataUrl) {
+                console.log('Content script: Found saved try-on result, injecting automatically');
+                await this.injectTryOnImage(savedData.imageDataUrl);
+                
+                // Show a notification to the user
+                this.showAutoInjectionNotification();
+            } else {
+                console.log('Content script: No saved try-on result found for this product');
+            }
+        } catch (error) {
+            console.error('Content script: Error checking for saved try-on:', error);
+        }
+    }
+
+    generateProductKey(url) {
+        // Extract product ID from Myntra URL
+        const productIdMatch = url.match(/\/(\d+)\/buy/);
+        if (productIdMatch) {
+            return `tryon_${productIdMatch[1]}`;
+        }
+        // Fallback: use URL hash
+        return `tryon_${btoa(url).replace(/[^a-zA-Z0-9]/g, '')}`;
+    }
+
+    async getSavedTryOnData(productKey) {
+        try {
+            // Check sync storage first
+            const syncResult = await chrome.storage.sync.get([productKey]);
+            if (syncResult[productKey]) {
+                console.log('Content script: Found saved try-on in sync storage');
+                return syncResult[productKey];
+            }
+            
+            // Check local storage
+            const localResult = await chrome.storage.local.get([productKey]);
+            if (localResult[productKey]) {
+                console.log('Content script: Found saved try-on in local storage');
+                return localResult[productKey];
+            }
+            
+            return null;
+        } catch (error) {
+            console.error('Content script: Error getting saved try-on data:', error);
+            return null;
+        }
+    }
+
+    showAutoInjectionNotification() {
+        // Create a notification banner
+        const notification = document.createElement('div');
+        notification.id = 'myntra-tryon-auto-notification';
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            z-index: 10000;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            max-width: 300px;
+            animation: slideIn 0.5s ease-out;
+        `;
+        
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 18px;">✨</span>
+                <div>
+                    <div style="font-weight: 600; margin-bottom: 4px;">Try-On Found!</div>
+                    <div style="font-size: 12px; opacity: 0.9;">Your saved try-on has been added to the page</div>
+                </div>
+                <button id="close-notification" style="
+                    background: none;
+                    border: none;
+                    color: white;
+                    font-size: 18px;
+                    cursor: pointer;
+                    padding: 0;
+                    margin-left: 10px;
+                ">×</button>
+            </div>
+        `;
+        
+        // Add CSS animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Add to page
+        document.body.appendChild(notification);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.style.animation = 'slideIn 0.5s ease-out reverse';
+                setTimeout(() => notification.remove(), 500);
+            }
+        }, 5000);
+        
+        // Close button functionality
+        const closeBtn = notification.querySelector('#close-notification');
+        closeBtn.onclick = () => notification.remove();
     }
 
     setupMessageListener() {
