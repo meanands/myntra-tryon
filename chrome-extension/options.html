@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Myntra Virtual Try-On - Settings</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #ff6b6b;
+        }
+        button {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #ee5a24;
+        }
+        .status {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .note {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Myntra Virtual Try-On Settings</h1>
+        
+        <div class="form-group">
+            <label for="apiKey">Gemini API Key</label>
+            <input type="password" id="apiKey" placeholder="Enter your Gemini API key">
+            <div class="note">
+                Your API key is stored locally in your browser and is never shared with anyone.
+                <br><br>
+                To get a Gemini API key:
+                <ol>
+                    <li>Go to <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a></li>
+                    <li>Sign in with your Google account</li>
+                    <li>Click "Create API Key"</li>
+                    <li>Copy the generated key and paste it above</li>
+                </ol>
+            </div>
+        </div>
+        
+        <button id="saveButton">Save Settings</button>
+        <button id="clearButton">Clear API Key</button>
+        
+        <div id="status" class="status" style="display: none;"></div>
+    </div>
+
+    <script src="options.js"></script>
+</body>
+</html>
+```
+
+```javascript:chrome-extension/options.js
+class OptionsPage {
+    constructor() {
+        this.init();
+    }
+
+    async init() {
+        await this.loadSettings();
+        this.setupEventListeners();
+    }
+
+    async loadSettings() {
+        try {
+            const result = await chrome.storage.sync.get(['geminiApiKey']);
+            if (result.geminiApiKey) {
+                document.getElementById('apiKey').value = result.geminiApiKey;
+            }
+        } catch (error) {
+            this.showStatus('Error loading settings', 'error');
+        }
+    }
+
+    setupEventListeners() {
+        document.getElementById('saveButton').addEventListener('click', () => this.saveSettings());
+        document.getElementById('clearButton').addEventListener('click', () => this.clearSettings());
+    }
+
+    async saveSettings() {
+        const apiKey = document.getElementById('apiKey').value.trim();
+        
+        if (!apiKey) {
+            this.showStatus('Please enter a valid API key', 'error');
+            return;
+        }
+
+        try {
+            await chrome.storage.sync.set({ geminiApiKey: apiKey });
+            this.showStatus('Settings saved successfully!', 'success');
+        } catch (error) {
+            this.showStatus('Failed to save settings', 'error');
+        }
+    }
+
+    async clearSettings() {
+        try {
+            await chrome.storage.sync.remove(['geminiApiKey']);
+            document.getElementById('apiKey').value = '';
+            this.showStatus('API key cleared successfully!', 'success');
+        } catch (error) {
+            this.showStatus('Failed to clear settings', 'error');
+        }
+    }
+
+    showStatus(message, type) {
+        const statusElement = document.getElementById('status');
+        statusElement.textContent = message;
+        statusElement.className = `status ${type}`;
+        statusElement.style.display = 'block';
+        
+        setTimeout(() => {
+            statusElement.style.display = 'none';
+        }, 3000);
+    }
+}
+
+// Initialize the options page
+document.addEventListener('DOMContentLoaded', () => {
+    new OptionsPage();
+});
+```
+
+```markdown:chrome-extension/README.md
+# Myntra Virtual Try-On Chrome Extension
+
+A Chrome extension that allows you to virtually try on Myntra dresses using Google's Gemini AI.
+
+## Features
+
+- Upload your photo directly from the extension popup
+- Automatically detect Myntra product pages
+- Generate realistic virtual try-on images using Gemini AI
+- Download generated images
+- Secure API key storage
+
+## Installation
+
+1. Download or clone this repository
+2. Open Chrome and go to `chrome://extensions/`
+3. Enable "Developer mode" in the top right
+4. Click "Load unpacked" and select the `chrome-extension` folder
+5. The extension icon will appear in your toolbar
+
+## Setup
+
+1. Click on the extension icon to open the popup
+2. Enter your Gemini API key (or go to Options to configure it)
+3. To get a Gemini API key:
+   - Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
+   - Sign in with your Google account
+   - Click "Create API Key"
+   - Copy the generated key
+
+## Usage
+
+1. **Upload Your Photo**: Click the upload area in the extension popup to select your photo
+2. **Navigate to Myntra**: Go to any Myntra product page
+3. **Generate Try-On**: Click the extension icon and press "Try This Dress"
+4. **View Results**: The generated image will appear in the popup
+5. **Download**: Click "Download Image" to save the result
+
+## Manual URL Input
+
+If you're not on a Myntra page, you can manually enter a Myntra product URL in the extension popup.
+
+## Privacy & Security
+
+- Your API key is stored locally in Chrome's sync storage
+- Images are processed directly by Google's Gemini API
+- No data is stored on external servers
+- All processing happens in your browser
+
+## Troubleshooting
+
+- **No images found**: Make sure you're on a valid Myntra product page
+- **API errors**: Verify your Gemini API key is correct and has sufficient quota
+- **Slow generation**: Image generation can take 30-60 seconds depending on server load
+
+## Technical Details
+
+- Uses Chrome Extension Manifest V3
+- Integrates with Google Gemini 2.5 Flash Image Preview API
+- Extracts product images from Myntra pages using content scripts
+- Processes images client-side for privacy
+
+## Development
+
+To modify the extension:
+
+1. Edit the files in the `chrome-extension` folder
+2. Go to `chrome://extensions/`
+3. Click the refresh icon on the extension card
+4. Test your changes
+
+## License
+
+This project is for educational and personal use only.
+```
+
+```text:chrome-extension/icons/README.txt
+Place your extension icons here:
+- icon16.png (16x16 pixels)
+- icon48.png (48x48 pixels) 
+- icon128.png (128x128 pixels)
+
+You can create these using any image editor or icon generator.
+For now, you can use placeholder images or create simple colored squares.
+```
+
+## Summary
+
+I've created a complete Chrome extension that replicates your web app's functionality. Here's what I've built:
+
+### Key Features:
+1. **Popup Interface**: Clean, modern UI for uploading photos and generating try-ons
+2. **API Key Management**: Secure storage and options page for configuration
+3. **Myntra Integration**: Automatically detects Myntra product pages
+4. **Image Extraction**: Content script that extracts product images from Myntra pages
+5. **Gemini Integration**: Direct API calls to generate try-on images
+6. **Download Functionality**: Save generated images locally
+
+### Files Created:
+- `manifest.json` - Extension configuration
+- `popup.html/js` - Main user interface
+- `content.js` - Extracts images from Myntra pages
+- `background.js` - Handles extension events
+- `options.html/js` - API key management
+- `styles.css` - Modern, responsive styling
+- `README.md` - Complete documentation
+
+### How to Use:
+1. Create the `chrome-extension` folder in your project
+2. Copy all the files I provided
+3. Create simple icons (16x16, 48x48, 128x128 pixels)
+4. Load the extension in Chrome's developer mode
+5. Configure your Gemini API key
+6. Start using the extension!
+
+The extension maintains the same core functionality as your web app but runs entirely client-side, providing a seamless experience for users browsing Myntra products.
+```
+

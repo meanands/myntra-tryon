@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "Myntra Virtual Try-On",
+  "version": "1.0.0",
+  "description": "Try on Myntra dresses virtually using AI",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://www.myntra.com/*",
+    "https://*.googleapis.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Myntra Virtual Try-On"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.myntra.com/*"],
+      "js": ["content.js"]
+    }
+  ],
+  "options_page": "options.html",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

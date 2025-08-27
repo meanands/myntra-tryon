@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Myntra Virtual Try-On</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Virtual Try-On</h1>
+            <div class="status" id="status"></div>
+        </div>
+
+        <!-- API Key Setup Section -->
+        <div class="section" id="apiKeySection">
+            <h3>Setup</h3>
+            <p>Enter your Gemini API key to get started:</p>
+            <input type="password" id="apiKeyInput" placeholder="Enter Gemini API Key">
+            <button id="saveApiKey">Save API Key</button>
+            <p class="note">Your API key is stored locally and never shared.</p>
+        </div>
+
+        <!-- Main Functionality Section -->
+        <div class="section" id="mainSection" style="display: none;">
+            <!-- Image Upload -->
+            <div class="upload-section">
+                <h3>Upload Your Photo</h3>
+                <div class="upload-area" id="uploadArea">
+                    <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                    <div class="upload-placeholder">
+                        <span>📷</span>
+                        <p>Click to upload your photo</p>
+                    </div>
+                </div>
+                <div class="preview-container" id="previewContainer" style="display: none;">
+                    <img id="previewImage" alt="Preview">
+                    <button id="removeImage">Remove</button>
+                </div>
+            </div>
+
+            <!-- Myntra URL Detection -->
+            <div class="url-section" id="urlSection" style="display: none;">
+                <h3>Myntra Product Detected</h3>
+                <p>We found a Myntra product on this page!</p>
+                <button id="tryOnButton" class="primary-button">Try This Dress</button>
+            </div>
+
+
+
+            <!-- Loading State -->
+            <div class="loading-section" id="loadingSection" style="display: none;">
+                <div class="spinner"></div>
+                <p>Generating your virtual try-on...</p>
+                <p class="note">This may take 30-60 seconds</p>
+            </div>
+
+            <!-- Results -->
+            <div class="results-section" id="resultsSection" style="display: none;">
+                <h3>Your Virtual Try-On</h3>
+                <div class="result-image-container">
+                    <img id="resultImage" alt="Generated Try-On">
+                </div>
+                <div class="result-actions">
+                    <button id="downloadButton">Download Image</button>
+                    <button id="tryAgainButton">Try Another</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Section -->
+        <div class="error-section" id="errorSection" style="display: none;">
+            <div class="error-message" id="errorMessage"></div>
+            <button id="dismissError">Dismiss</button>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
+```
+

@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Myntra Dress Try-On - AI Virtual Fitting</title>
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .upload-area {
+            border: 3px dashed #ddd;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #667eea;
+            background: #e8f2ff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .upload-hint {
+            font-size: 0.9rem;
+            color: #999;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 10px;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .url-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .url-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result-section {
+            grid-column: 1 / -1;
+            text-align: center;
+        }
+
+        .comparison-container {
+            margin-top: 20px;
+        }
+
+        .image-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .image-card {
+            text-align: center;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .image-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .comparison-image {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .generated-image {
+            max-width: 100%;
+            max-height: 500px;
+            border-radius: 15px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+            margin-top: 20px;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #c33;
+        }
+
+        .success {
+            background: #efe;
+            color: #363;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #363;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            gap: 20px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            border-radius: 25px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            font-weight: 500;
+        }
+
+        .step.active {
+            background: rgba(255,255,255,0.3);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .step-number {
+            background: white;
+            color: #667eea;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+
+            .image-comparison {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .action-buttons .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👗 Myntra Dress Try-On</h1>
+            <p>Upload your photo and try on any dress from Myntra using AI-powered virtual fitting technology</p>
+        </div>
+
+        <div class="step-indicator">
+            <div class="step active" id="step1">
+                <div class="step-number">1</div>
+                <span>Upload Photo</span>
+            </div>
+            <div class="step" id="step2">
+                <div class="step-number">2</div>
+                <span>Enter Myntra URL</span>
+            </div>
+            <div class="step" id="step3">
+                <div class="step-number">3</div>
+                <span>Generate Try-On</span>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="card">
+                <h2>📸 Upload Your Photo</h2>
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📁</div>
+                    <div class="upload-text">Drag & drop your photo here</div>
+                    <div class="upload-hint">or click to browse (JPG, PNG, max 10MB)</div>
+                    <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                </div>
+                <img id="previewImage" class="preview-image" style="display: none;">
+                <button class="btn" id="uploadBtn" style="display: none;">Upload Photo</button>
+            </div>
+
+            <div class="card">
+                <h2>🛍️ Myntra Product URL</h2>
+                <input type="url" class="url-input" id="myntraUrl" placeholder="Paste Myntra dress product URL here...">
+                
+                <div style="margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 10px; border-left: 4px solid #667eea;">
+                    <h3 style="margin: 0 0 10px 0; color: #667eea; font-size: 1rem;">🤖 AI Generation Method</h3>
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="radio" name="generationMethod" value="standard" checked style="cursor: pointer;">
+                            <span>Standard (Faster)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="radio" name="generationMethod" value="conversational" style="cursor: pointer;">
+                            <span>Conversational (More Reliable)</span>
+                        </label>
+                    </div>
+                    <p style="margin: 10px 0 0 0; font-size: 0.9rem; color: #666;">
+                        Conversational method mimics manual chat and often produces better results.
+                    </p>
+                </div>
+                
+                <button class="btn" id="generateBtn" disabled>Generate Try-On Image</button>
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Generating your try-on image... This may take a few moments.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="result-section" id="resultSection" style="display: none;">
+            <div class="card">
+                <h2>✨ Your Try-On Result</h2>
+                <div class="comparison-container">
+                    <div class="image-comparison">
+                        <div class="image-card">
+                            <h3>🛍️ Original Product</h3>
+                            <img id="productImage" class="comparison-image">
+                        </div>
+                        <div class="image-card">
+                            <h3>👗 Your Try-On</h3>
+                            <img id="generatedImage" class="comparison-image">
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn" id="downloadBtn" style="width: auto;">Download Try-On Image</button>
+                        <button class="btn" id="downloadBothBtn" style="width: auto; background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">Download Both Images</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let uploadedImageFilename = null;
+        let uploadedImageUrl = null;
+
+        // DOM elements
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const previewImage = document.getElementById('previewImage');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const myntraUrl = document.getElementById('myntraUrl');
+        const generateBtn = document.getElementById('generateBtn');
+        const loading = document.getElementById('loading');
+        const resultSection = document.getElementById('resultSection');
+        const generatedImage = document.getElementById('generatedImage');
+        const productImage = document.getElementById('productImage');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const downloadBothBtn = document.getElementById('downloadBothBtn');
+
+        // File upload handling
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelect(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+
+        function handleFileSelect(file) {
+            if (!file.type.startsWith('image/')) {
+                showError('Please select an image file.');
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) {
+                showError('File size must be less than 10MB.');
+                return;
+            }
+
+            // Preview image
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImage.src = e.target.result;
+                previewImage.style.display = 'block';
+                uploadBtn.style.display = 'block';
+                uploadArea.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Upload photo
+        uploadBtn.addEventListener('click', async () => {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = 'Uploading...';
+
+            const formData = new FormData();
+            formData.append('photos', file);
+
+            try {
+                const response = await fetch('/upload-photos', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    uploadedImageFilename = result.files[0].filename;
+                    uploadedImageUrl = previewImage.src;
+                    showSuccess('Photo uploaded successfully!');
+                    updateStep(2);
+                    checkGenerateButton();
+                } else {
+                    showError(result.error || 'Upload failed');
+                }
+            } catch (error) {
+                showError('Upload failed. Please try again.');
+            } finally {
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = 'Upload Photo';
+            }
+        });
+
+        // Generate try-on
+        generateBtn.addEventListener('click', async () => {
+            if (!uploadedImageFilename || !myntraUrl.value.trim()) return;
+
+            generateBtn.disabled = true;
+            loading.style.display = 'block';
+            updateStep(3);
+
+            // Get the selected generation method
+            const generationMethod = document.querySelector('input[name="generationMethod"]:checked').value;
+            const useConversational = generationMethod === 'conversational';
+
+            try {
+                const url = useConversational 
+                    ? `/generate?conversational=true`
+                    : '/generate';
+                    
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        url: myntraUrl.value.trim(),
+                        myImage: uploadedImageFilename
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    generatedImage.src = result.generatedImageUrl;
+                    productImage.src = result.productImageUrl;
+                    resultSection.style.display = 'block';
+                    resultSection.scrollIntoView({ behavior: 'smooth' });
+                    showSuccess(`Try-on image generated successfully using ${generationMethod} method!`);
+                } else {
+                    showError(result.error || 'Generation failed');
+                }
+            } catch (error) {
+                showError('Generation failed. Please try again.');
+            } finally {
+                generateBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        });
+
+        // Download try-on image
+        downloadBtn.addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.href = generatedImage.src;
+            link.download = 'myntra-tryon-result.jpg';
+            link.click();
+        });
+
+        // Download both images
+        downloadBothBtn.addEventListener('click', async () => {
+            try {
+                const zip = new JSZip();
+                
+                // Add try-on image
+                const tryOnResponse = await fetch(generatedImage.src);
+                const tryOnBlob = await tryOnResponse.blob();
+                zip.file('tryon-result.jpg', tryOnBlob);
+                
+                // Add product image
+                const productResponse = await fetch(productImage.src);
+                const productBlob = await productResponse.blob();
+                zip.file('original-product.jpg', productBlob);
+                
+                // Generate and download zip
+                const zipBlob = await zip.generateAsync({type: 'blob'});
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(zipBlob);
+                link.download = 'myntra-tryon-comparison.zip';
+                link.click();
+                
+                showSuccess('Both images downloaded successfully!');
+            } catch (error) {
+                console.error('Error downloading both images:', error);
+                showError('Failed to download both images. Please try downloading them individually.');
+            }
+        });
+
+        // URL input validation
+        myntraUrl.addEventListener('input', checkGenerateButton);
+
+        function checkGenerateButton() {
+            generateBtn.disabled = !uploadedImageFilename || !myntraUrl.value.trim();
+        }
+
+        function updateStep(stepNumber) {
+            document.querySelectorAll('.step').forEach((step, index) => {
+                step.classList.toggle('active', index < stepNumber);
+            });
+        }
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = message;
+            document.querySelector('.container').insertBefore(errorDiv, document.querySelector('.main-content'));
+            setTimeout(() => errorDiv.remove(), 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success';
+            successDiv.textContent = message;
+            document.querySelector('.container').insertBefore(successDiv, document.querySelector('.main-content'));
+            setTimeout(() => successDiv.remove(), 5000);
+        }
+
+        // Initialize
+        updateStep(1);
+    </script>
+</body>
+</html>

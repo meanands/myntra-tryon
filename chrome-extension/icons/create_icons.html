@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Extension Icons</title>
+</head>
+<body>
+    <h2>Extension Icons</h2>
+    <p>Right-click on each icon below and save as the corresponding filename:</p>
+    
+    <h3>16x16 icon (save as icon16.png)</h3>
+    <canvas id="icon16" width="16" height="16"></canvas>
+    
+    <h3>48x48 icon (save as icon48.png)</h3>
+    <canvas id="icon48" width="48" height="48"></canvas>
+    
+    <h3>128x128 icon (save as icon128.png)</h3>
+    <canvas id="icon128" width="128" height="128"></canvas>
+
+    <script>
+        function createIcon(canvasId, size) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            
+            // Background gradient
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#ff6b6b');
+            gradient.addColorStop(1, '#ee5a24');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            // Draw a simple dress icon
+            ctx.fillStyle = 'white';
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = Math.max(1, size / 32);
+            
+            // Dress shape
+            const centerX = size / 2;
+            const centerY = size / 2;
+            const dressWidth = size * 0.6;
+            const dressHeight = size * 0.7;
+            
+            ctx.beginPath();
+            ctx.moveTo(centerX - dressWidth/2, centerY - dressHeight/2);
+            ctx.lineTo(centerX + dressWidth/2, centerY - dressHeight/2);
+            ctx.lineTo(centerX + dressWidth/2, centerY + dressHeight/2);
+            ctx.lineTo(centerX - dressWidth/2, centerY + dressHeight/2);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Add some details
+            ctx.fillStyle = '#ff6b6b';
+            ctx.fillRect(centerX - dressWidth/4, centerY - dressHeight/3, dressWidth/2, dressHeight/6);
+        }
+        
+        createIcon('icon16', 16);
+        createIcon('icon48', 48);
+        createIcon('icon128', 128);
+    </script>
+</body>
+</html>

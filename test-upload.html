@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Upload Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .upload-form {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Photo Upload Test</h1>
+    
+    <div class="upload-form">
+        <h3>Upload Photos</h3>
+        <form id="uploadForm" enctype="multipart/form-data">
+            <input type="file" id="photos" name="photos" multiple accept="image/*" required>
+            <br>
+            <button type="submit">Upload Photos</button>
+        </form>
+    </div>
+
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            const fileInput = document.getElementById('photos');
+            const files = fileInput.files;
+            
+            if (files.length === 0) {
+                showResult('Please select at least one file', 'error');
+                return;
+            }
+            
+            for (let i = 0; i < files.length; i++) {
+                formData.append('photos', files[i]);
+            }
+            
+            try {
+                const response = await fetch('http://localhost:3000/upload-photos', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResult(`
+                        <strong>Upload Successful!</strong><br>
+                        Files uploaded: ${result.count}<br>
+                        <strong>Saved filenames:</strong><br>
+                        ${result.files.map(file => `• ${file.filename} (${file.originalName})`).join('<br>')}
+                    `, 'success');
+                } else {
+                    showResult(`Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showResult(`Network error: ${error.message}`, 'error');
+            }
+        });
+        
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = message;
+            resultDiv.className = `result ${type}`;
+        }
+    </script>
+</body>
+</html>
