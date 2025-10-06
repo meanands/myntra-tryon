@@ -1,6 +1,14 @@
 # 👗 Myntra Dress Try-On - AI Virtual Fitting
 
+A comprehensive solution for trying on Myntra dresses using AI-powered virtual fitting technology. This project includes both a **Chrome Extension** and a **Web Application** that allow you to upload your photo and try on any Myntra dress virtually!
+
+## 🎯 Two Ways to Use
+
+### 🌐 Web Application
 A beautiful web application that allows you to try on Myntra dresses using AI-powered virtual fitting technology. Upload your photo and paste any Myntra dress product URL to see how it looks on you!
+
+### 🔌 Chrome Extension
+A convenient Chrome extension that automatically detects Myntra product pages and allows you to try on dresses directly from the website. Perfect for seamless shopping experience!
 
 ## ✨ Features
 
@@ -17,9 +25,10 @@ A beautiful web application that allows you to try on Myntra dresses using AI-po
 
 - Node.js (v16 or higher)
 - npm or yarn
-- Google Gemini API key (set in environment variables)
+- Google Gemini API key
+- Chrome browser (for extension)
 
-### Installation
+### 🌐 Web Application Setup
 
 1. Clone the repository:
 ```bash
@@ -50,7 +59,18 @@ npm run dev
 
 6. Open your browser and navigate to `http://localhost:3000`
 
+### 🔌 Chrome Extension Setup
+
+1. Navigate to the `chrome-extension` folder
+2. Open Chrome and go to `chrome://extensions/`
+3. Enable "Developer mode" in the top right
+4. Click "Load unpacked" and select the `chrome-extension` folder
+5. The extension icon will appear in your toolbar
+6. Click the extension icon and enter your Gemini API key
+
 ## 📖 How to Use
+
+### 🌐 Web Application Usage
 
 1. **Upload Your Photo**: 
    - Drag and drop your photo or click to browse
@@ -67,6 +87,28 @@ npm run dev
    - View your personalized try-on result
 
 4. **Download Result**:
+   - Click "Download Image" to save your try-on image
+
+### 🔌 Chrome Extension Usage
+
+1. **Setup API Key**: 
+   - Click the extension icon
+   - Enter your Gemini API key in the popup
+
+2. **Navigate to Myntra**:
+   - Go to any Myntra dress product page
+   - The extension will automatically detect the product
+
+3. **Upload Your Photo**:
+   - Click the extension icon
+   - Upload your photo using the popup interface
+
+4. **Generate Try-On**:
+   - Click "Try This Dress" button
+   - Wait for the AI to process your request
+   - View your personalized try-on result
+
+5. **Download Result**:
    - Click "Download Image" to save your try-on image
 
 ## 🛠️ API Endpoints
@@ -87,11 +129,19 @@ npm run dev
 
 ## 🔧 Technical Stack
 
+### 🌐 Web Application
 - **Backend**: Node.js, Express.js, TypeScript
 - **Frontend**: HTML5, CSS3, Vanilla JavaScript
 - **AI**: Google Gemini Flash API
 - **File Handling**: Multer for file uploads
 - **Web Scraping**: Playwright for extracting Myntra product images
+
+### 🔌 Chrome Extension
+- **Extension**: Chrome Extension Manifest V3
+- **Frontend**: HTML5, CSS3, Vanilla JavaScript
+- **Storage**: Chrome Sync Storage for API key
+- **Content Scripts**: Automatic Myntra page detection
+- **AI**: Google Gemini Flash API integration
 
 ## 📱 Browser Compatibility
 
@@ -108,9 +158,31 @@ npm run dev
 4. Test thoroughly
 5. Submit a pull request
 
+## 📁 Project Structure
+
+```
+myntra-try/
+├── chrome-extension/          # Chrome Extension files
+│   ├── manifest.json         # Extension configuration
+│   ├── popup.html           # Extension popup interface
+│   ├── popup.js             # Popup functionality
+│   ├── content.js           # Content script for Myntra pages
+│   ├── background.js        # Service worker
+│   ├── options.html         # Extension options page
+│   ├── styles.css           # Extension styling
+│   └── icons/               # Extension icons
+├── src/                     # Web application source code
+│   ├── server.ts           # Express server
+│   ├── browser.ts          # Client-side code
+│   └── types.ts            # TypeScript definitions
+├── dist/                    # Compiled JavaScript
+├── data/                    # Generated images storage
+└── README.md               # This file
+```
+
 ## 📄 License
 
-This project is licensed under the ISC License.
+This project is licensed under the MIT License.
 
 ## 🆘 Support
 
