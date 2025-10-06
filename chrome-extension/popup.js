@@ -749,7 +749,7 @@ class MyntraTryOnExtension {
                         },
                     },
                     {
-                        text: "This is the person who wants to try on clothing. Now I'll upload the clothing product image:"
+                        text: "This is the person who wants to try on clothing. Next I'll upload the clothing product image:"
                     },
                     {
                         inlineData: {
@@ -759,7 +759,7 @@ class MyntraTryOnExtension {
                     },
                     {
                         text: "This is the clothing product. Please create a realistic try-on image where the person from the first image is wearing the clothing from the second image. " +
-                              "Make sure the clothing fits naturally on the person's body, maintains the original design and color, and looks like a real photo. " +
+                              "Make sure the new clothing fits naturally on the person's body. " +
                               "Return the generated image only."
                     }
                 ]
